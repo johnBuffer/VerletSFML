@@ -70,12 +70,18 @@ public:
     {
         m_time += m_frame_dt;
         const float step_dt = getStepDt();
+
+        // gravity is applied only once
+        applyGravity();
+
         for (uint32_t i{m_sub_steps}; i--;) {
-            applyGravity();
             checkCollisions(step_dt);
             applyConstraint();
             updateObjects(step_dt);
         }
+
+
+
     }
 
     void setSimulationUpdateRate(uint32_t rate)
@@ -131,7 +137,7 @@ public:
 
 private:
     uint32_t                  m_sub_steps          = 1;
-    sf::Vector2f              m_gravity            = {0.0f, 1000.0f};
+    sf::Vector2f              m_gravity            = {0.0f, 10000.0f};
     sf::Vector2f              m_constraint_center;
     float                     m_constraint_radius  = 100.0f;
     std::vector<VerletObject> m_objects;
