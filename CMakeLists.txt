@@ -8,4 +8,4 @@ find_package(SFML 2 COMPONENTS "graphics" "window" "system" REQUIRED)
 
 add_executable(${PROJECT_NAME} main.cpp)
 
-target_link_libraries(${PROJECT_NAME} "sfml-graphics" "sfml-window" "sfml-system")
+target_link_libraries(${PROJECT_NAME} PRIVATE "sfml-graphics" "sfml-window" "sfml-system")
