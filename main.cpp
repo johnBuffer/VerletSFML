@@ -69,8 +69,9 @@ int32_t main(int32_t, char*[])
             solver.setObjectVelocity(object, object_spawn_speed * sf::Vector2f{cos(angle), sin(angle)});
             object.color = getRainbow(t);
         }*/
-
+        clock.restart();
         solver.update();
+        std::cout << clock.getElapsedTime().asMilliseconds() << std::endl;
         window.clear(sf::Color::Black);
         renderer.render(solver);
 		window.display();
