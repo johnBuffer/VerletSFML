@@ -10,32 +10,24 @@ struct VerletObject
 {
     sf::Vector2f position;
     sf::Vector2f position_last;
-    sf::Vector2f acceleration;
+    //sf::Vector2f acceleration;
     float        radius        = 10.0f;
-    sf::Color    color         = sf::Color::White;
+    //sf::Color    color         = sf::Color::White;
 
     VerletObject() = default;
     VerletObject(sf::Vector2f position_, float radius_)
         : position{position_}
         , position_last{position_}
-        , acceleration{0.0f, 0.0f}
         , radius{radius_}
     {}
 
-    void update(float dt)
+    void update(float dt, sf::Vector2f gravity)
     {
         // Compute how much we moved
         const sf::Vector2f displacement = position - position_last;
         // Update position
         position_last = position;
-        position      = position + displacement + acceleration * (dt * dt);
-        // Reset acceleration
-        acceleration  = {};
-    }
-
-    void accelerate(sf::Vector2f a)
-    {
-        acceleration += a;
+        position      = position + displacement + gravity * (dt * dt);
     }
 
     void setVelocity(sf::Vector2f v, float dt)
@@ -59,7 +51,12 @@ struct VerletObject
 class Solver
 {
 public:
-    Solver() = default;
+    explicit
+    Solver(sf::Vector2f world_size)
+        : m_world_size{world_size}
+    {
+
+    }
 
     VerletObject& addObject(sf::Vector2f position, float radius)
     {
@@ -71,7 +68,6 @@ public:
         m_time += m_frame_dt;
         const float step_dt = getStepDt();
         for (uint32_t i{m_sub_steps}; i--;) {
-            applyGravity();
             checkCollisions(step_dt);
             applyConstraint();
             updateObjects(step_dt);
@@ -137,17 +133,10 @@ private:
     std::vector<VerletObject> m_objects;
     float                     m_time               = 0.0f;
     float                     m_frame_dt           = 0.0f;
-
-    void applyGravity()
-    {
-        for (auto& obj : m_objects) {
-            obj.accelerate(m_gravity);
-        }
-    }
+    sf::Vector2f              m_world_size;
 
     void checkCollisions(float dt)
     {
-        const float    response_coef = 0.75f;
         const uint64_t objects_count = m_objects.size();
         // Iterate on all objects
         for (uint64_t i{0}; i < objects_count; ++i) {
@@ -162,12 +151,12 @@ private:
                 if (dist2 < min_dist * min_dist) {
                     const float        dist  = sqrt(dist2);
                     const sf::Vector2f n     = v / dist;
-                    const float mass_ratio_1 = object_1.radius / (object_1.radius + object_2.radius);
-                    const float mass_ratio_2 = object_2.radius / (object_1.radius + object_2.radius);
-                    const float delta        = 0.5f * response_coef * (dist - min_dist);
+                    //const float mass_ratio_1 = object_1.radius / (object_1.radius + object_2.radius);
+                    //const float mass_ratio_2 = object_2.radius / (object_1.radius + object_2.radius);
+                    const float delta        = 0.5f * (dist - min_dist);
                     // Update positions
-                    object_1.position -= n * (mass_ratio_2 * delta);
-                    object_2.position += n * (mass_ratio_1 * delta);
+                    object_1.position -= n * delta;
+                    object_2.position += n * delta;
                 }
             }
         }
@@ -176,11 +165,16 @@ private:
     void applyConstraint()
     {
         for (auto& obj : m_objects) {
-            const sf::Vector2f v    = m_constraint_center - obj.position;
-            const float        dist = sqrt(v.x * v.x + v.y * v.y);
-            if (dist > (m_constraint_radius - obj.radius)) {
-                const sf::Vector2f n = v / dist;
-                obj.position = m_constraint_center - n * (m_constraint_radius - obj.radius);
+            if (obj.position.x < obj.radius) {
+                obj.position.x = obj.radius;
+            } else if (obj.position.x > m_world_size.x - obj.radius) {
+                obj.position.x = m_world_size.x - obj.radius;
+            }
+
+            if (obj.position.y < obj.radius) {
+                obj.position.y = obj.radius;
+            } else if (obj.position.y > m_world_size.y - obj.radius) {
+                obj.position.y = m_world_size.y - obj.radius;
             }
         }
     }
@@ -188,7 +182,7 @@ private:
     void updateObjects(float dt)
     {
         for (auto& obj : m_objects) {
-            obj.update(dt);
+            obj.update(dt, m_gravity);
         }
     }
 };

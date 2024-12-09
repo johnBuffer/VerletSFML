@@ -29,7 +29,7 @@ int32_t main(int32_t, char*[])
     const uint32_t frame_rate = 60;
     window.setFramerateLimit(frame_rate);
 
-    Solver   solver;
+    Solver   solver({static_cast<float>(window_width), static_cast<float>(window_height)});
     Renderer renderer{window};
 
     // Solver configuration
@@ -43,8 +43,13 @@ int32_t main(int32_t, char*[])
     const sf::Vector2f object_spawn_position = {500.0f, 200.0f};
     const float        object_min_radius     = 1.0f;
     const float        object_max_radius     = 20.0f;
-    const uint32_t     max_objects_count     = 1000;
+    const uint32_t     max_objects_count     = 3000;
     const float        max_angle             = 1.0f;
+
+    for (uint32_t i{0}; i < max_objects_count; i++) {
+        float const radius = RNGf::getRange(2.0f, 10.0f);
+        solver.addObject({RNGf::getRange(radius, window_width - radius), RNGf::getRange(radius, window_height - radius)}, radius);
+    }
 
     sf::Clock clock;
     // Main loop
@@ -56,17 +61,17 @@ int32_t main(int32_t, char*[])
             }
         }
 
-        if (solver.getObjectsCount() < max_objects_count && clock.getElapsedTime().asSeconds() >= object_spawn_delay) {
+        /*if (solver.getObjectsCount() < max_objects_count && clock.getElapsedTime().asSeconds() >= object_spawn_delay) {
             clock.restart();
             auto&       object = solver.addObject(object_spawn_position, RNGf::getRange(object_min_radius, object_max_radius));
             const float t      = solver.getTime();
             const float angle  = max_angle * sin(t) + Math::PI * 0.5f;
             solver.setObjectVelocity(object, object_spawn_speed * sf::Vector2f{cos(angle), sin(angle)});
             object.color = getRainbow(t);
-        }
+        }*/
 
         solver.update();
-        window.clear(sf::Color::White);
+        window.clear(sf::Color::Black);
         renderer.render(solver);
 		window.display();
     }
