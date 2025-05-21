@@ -6,17 +6,6 @@
 #include "utils/math.hpp"
 
 
-static sf::Color getRainbow(float t)
-{
-    const float r = sin(t);
-    const float g = sin(t + 0.33f * 2.0f * Math::PI);
-    const float b = sin(t + 0.66f * 2.0f * Math::PI);
-    return {static_cast<uint8_t>(255.0f * r * r),
-            static_cast<uint8_t>(255.0f * g * g),
-            static_cast<uint8_t>(255.0f * b * b)};
-}
-
-
 int32_t main(int32_t, char*[])
 {
     // Create window
@@ -65,9 +54,11 @@ int32_t main(int32_t, char*[])
     while (window.isOpen()) {
         sf::Event event{};
         while (window.pollEvent(event)) {
+            // Exit the application
             if (event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
                 window.close();
             } else if (event.type == sf::Event::KeyPressed) {
+                // Toggle fullspeed
                 if (event.key.code == sf::Keyboard::S) {
                     unlock_frame_rate = !unlock_frame_rate;
                     if (unlock_frame_rate) {
@@ -75,15 +66,19 @@ int32_t main(int32_t, char*[])
                     } else {
                         window.setFramerateLimit(frame_rate);
                     }
+                // Map the image to the simulation state
                 } else if (event.key.code == sf::Keyboard::L) {
                     object_color.clear();
                     // Loads the image and applies it to objects
                     for (uint32_t i = 0; i < solver.getObjectsCount(); ++i) {
                         auto& obj = solver.getObject(i);
+                        // Find the position of the object on the image
                         sf::Vector2i const pxl_position{mapObjectPositionToPxlPosition(obj.position)};
                         obj.color = image.getPixel(pxl_position.x, pxl_position.y);
+                        // Store the color for this object
                         object_color.push_back(obj.color);
                     }
+                // Resets the simulation using the stored colors
                 } else if (event.key.code == sf::Keyboard::R) {
                     // Resets the simulation
                     solver.reset();
