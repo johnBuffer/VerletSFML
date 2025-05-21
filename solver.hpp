@@ -105,6 +105,11 @@ public:
         return m_objects;
     }
 
+    VerletObject& getObject(uint64_t const i)
+    {
+        return m_objects[i];
+    }
+
     [[nodiscard]]
     sf::Vector3f getConstraint() const
     {
@@ -127,6 +132,12 @@ public:
     float getStepDt() const
     {
         return m_frame_dt / static_cast<float>(m_sub_steps);
+    }
+
+    void reset()
+    {
+        m_time = 0.0f;
+        m_objects.clear();
     }
 
 private:

@@ -5,11 +5,10 @@
 class NumberGenerator
 {
 protected:
-    std::random_device rd;
     std::mt19937 gen;
 
-    NumberGenerator()
-            : gen(rd())
+    NumberGenerator(size_t seed = 0)
+        : gen(seed)
     {}
 };
 
@@ -21,15 +20,15 @@ private:
     std::uniform_real_distribution<T> dis;
 
 public:
-    RealNumberGenerator()
-            : NumberGenerator()
-            , dis(0.0f, 1.0f)
-    {}
+    RealNumberGenerator(size_t seed = 0)
+        : NumberGenerator(seed)
+    {
+        reset();
+    }
 
     // random_device is not copyable
-    RealNumberGenerator(const RealNumberGenerator<T>& right)
-            : NumberGenerator()
-            , dis(right.dis)
+    RealNumberGenerator(const RealNumberGenerator& right)
+        : dis(right.dis)
     {}
 
     float get()
@@ -50,6 +49,12 @@ public:
     float getRange(T width)
     {
         return getRange(-width * 0.5f, width * 0.5f);
+    }
+
+    void reset()
+    {
+        gen = {};
+        dis = std::uniform_real_distribution<T>(0.0f, 1.0f);
     }
 };
 
@@ -95,6 +100,11 @@ public:
     {
         return get() < threshold;
     }
+
+    static void reset()
+    {
+        gen.reset();
+    }
 };
 
 using RNGf = RNG<float>;
@@ -108,12 +118,12 @@ class IntegerNumberGenerator : public NumberGenerator
 {
 public:
     IntegerNumberGenerator()
-            : NumberGenerator()
+        : NumberGenerator()
     {}
 
     // random_device is not copyable
     IntegerNumberGenerator(const IntegerNumberGenerator<T>& right)
-            : NumberGenerator()
+        : NumberGenerator()
     {}
 
     T getUnder(T max)
